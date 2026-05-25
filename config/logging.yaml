@@ -1,0 +1,89 @@
+
+version: 1
+disable_existing_loggers: false
+
+# ── Formatters ────────────────────────────────────────────────────────────────
+formatters:
+
+  detailed:                           # full info — used in log files
+    format: "%(asctime)s | %(levelname)-8s | %(name)-20s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+  console:                            # compact — used on stdout
+    format: "%(asctime)s [%(levelname)s] %(message)s"
+    datefmt: "%H:%M:%S"
+
+  json:                               # machine-readable — used in alert.log
+    "()": "utils.logger.JsonFormatter"
+
+# ── Handlers ──────────────────────────────────────────────────────────────────
+handlers:
+
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: console
+    stream: ext://sys.stdout
+
+  app_file:                           # all application events, rotated daily
+    class: logging.handlers.TimedRotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/app.log
+    when: midnight
+    backupCount: 30                   # keep 30 days of logs
+    encoding: utf-8
+
+  error_file:                         # WARNING and above only
+    class: logging.handlers.RotatingFileHandler
+    level: WARNING
+    formatter: detailed
+    filename: logs/error.log
+    maxBytes: 10485760                # 10 MB per file
+    backupCount: 5
+    encoding: utf-8
+
+  alert_file:                         # JSON-formatted alert events only
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: logs/alerts.log
+    maxBytes: 10485760                # 10 MB per file
+    backupCount: 10
+    encoding: utf-8
+
+  stream_file:                        # RTSP / camera connection events
+    class: logging.handlers.TimedRotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/stream.log
+    when: midnight
+    backupCount: 7
+    encoding: utf-8
+
+# ── Loggers ───────────────────────────────────────────────────────────────────
+loggers:
+
+  motion_detector:                    # root logger for this application
+    level: DEBUG
+    handlers: [console, app_file, error_file]
+    propagate: false
+
+  motion_detector.stream:             # RTSP stream events
+    level: DEBUG
+    handlers: [console, stream_file, error_file]
+    propagate: false
+
+  motion_detector.detector:          # motion analysis events
+    level: DEBUG
+    handlers: [console, app_file, error_file]
+    propagate: false
+
+  motion_detector.alert:             # alert save events → also JSON log
+    level: INFO
+    handlers: [console, alert_file, error_file]
+    propagate: false
+
+root:
+  level: WARNING
+  handlers: [console]

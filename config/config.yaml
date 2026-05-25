@@ -1,0 +1,40 @@
+
+# ── Camera ────────────────────────────────────────────────────────────────────
+camera:
+  rtsp_url: "rtsp://admin:diffuse123@192.168.0.183:554/cam/realmonitor?channel=1&subtype=2"
+  transport: "tcp"          # tcp | udp  (tcp = reliable LAN, udp = low latency)
+  reconnect_delay_sec: 5    # seconds to wait before reconnecting on stream loss
+  frame_buffer_size: 1      # keep only latest frame (avoids lag buildup)
+  connection_timeout_sec: 30  # max seconds to wait for first frame on startup
+
+# ── Detection ─────────────────────────────────────────────────────────────────
+detection:
+  min_contour_area_px2: 500   # blobs smaller than this are ignored (noise filter)
+  blur_kernel_size: 21        # Gaussian blur kernel before background subtraction
+  dilate_iterations: 2        # dilate foreground mask to fill gaps in objects
+  mog2_history: 500           # frames used to build background model
+  mog2_threshold: 16          # per-pixel variance threshold for MOG2
+  shadow_removal: true
+  diff_threshold: 25      # abs pixel diff to count as changed (reference-frame mode)
+
+alerts:
+  snapshot_dir: alerts/snapshots
+  json_dir: alerts/json
+  cooldown_sec: 5
+  jpeg_quality: 90
+  draw_bounding_boxes: true
+  draw_zone_on_snapshot: true
+  timestamp_watermark: true
+
+# ── Display ───────────────────────────────────────────────────────────────────
+display:
+  window_title: "RTSP Motion Detection"
+  show_status_bar: true       # show info bar at bottom of live window
+  show_motion_banner: true    # show red banner at top when motion is detected
+  zone_color_normal:  [0, 220, 0]    # BGR — green when no motion
+  zone_color_motion:  [0, 0, 255]    # BGR — red when motion detected
+  box_color:          [0, 0, 255]    # BGR — bounding box colour
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  config_file: "config/logging.yaml"  # path to the logging config (below)
